@@ -5,6 +5,9 @@ ARG USER_HOME_DIR="/root"
 ARG SHA=0ec48eb515d93f8515d4abe465570dfded6fa13a3ceb9aab8031428442d9912ec20f066b2afbf56964ffe1ceb56f80321b50db73cf77a0e2445ad0211fb8e38d
 ARG BASE_URL=https://apache.osuosl.org/maven/maven-3/${MAVEN_VERSION}/binaries
 
+copy ca-certs /ca-certs
+RUN keytool -import -file /ca-certs/galianlocal.cer -keystore /usr/local/openjdk-11/jre/lib/security/cacerts -storepass "changeit"
+
 RUN mkdir -p /usr/share/maven /usr/share/maven/ref \
   && curl -fsSL -o /tmp/apache-maven.tar.gz ${BASE_URL}/apache-maven-${MAVEN_VERSION}-bin.tar.gz \
   && echo "${SHA}  /tmp/apache-maven.tar.gz" | sha512sum -c - \
@@ -14,13 +17,9 @@ RUN mkdir -p /usr/share/maven /usr/share/maven/ref \
 
 ENV MAVEN_HOME /usr/share/maven
 ENV MAVEN_CONFIG "$USER_HOME_DIR/.m2"
-
 COPY mvn-entrypoint.sh /usr/local/bin/mvn-entrypoint.sh
 COPY settings-docker.xml /usr/share/maven/ref/
-
 ENTRYPOINT ["/usr/local/bin/mvn-entrypoint.sh"]
 
-copy ca-certs /ca-certs
-RUN keytool -import -file /ca-certs/galianlocal.cer -keystore /usr/local/openjdk-11/jre/lib/security/cacerts -storepass "changeit"
 CMD ["mvn"]
 
